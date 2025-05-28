@@ -10,11 +10,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  votes     Vote[]
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String
+  verified        Boolean  @default(false)      
+  verifyToken     String?                       
+  verifyTokenExp  DateTime?                     
+  votes           Vote[]
+  createdAt       DateTime @default(now())
 }
 
 model Party {

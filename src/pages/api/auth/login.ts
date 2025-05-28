@@ -1,17 +1,24 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+import { serialize } from "cookie";
+
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
-    return res.status(405).json({ message: "Only POST method is allowed" });
+    return res.status(405).json({ message: "Only POST allowed" });
   }
 
   const { email, password } = req.body;
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user.verified) {
+  return res.status(403).json({ message: "Please verify your email first" });
+}
+
 
   if (!user) {
     return res.status(401).json({ message: "Invalid email or password" });
@@ -23,6 +30,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
-  // 🔐 JWT или session можно добавить позже
-  return res.status(200).json({ message: "Login successful", userId: user.id });
+  // 🔐 Создаём JWT
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+
+  // 🍪 Ставим httpOnly cookie
+  res.setHeader(
+    "Set-Cookie",
+    serialize("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 дней
+    })
+  );
+
+  return res.status(200).json({ message: "Login successful" });
 }

@@ -7,7 +7,6 @@ type Party = {
 
 export default function VotePage() {
   const [parties, setParties] = useState<Party[]>([]);
-  const [userId, setUserId] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -20,7 +19,7 @@ export default function VotePage() {
     const res = await fetch("/api/vote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, partyId }),
+      body: JSON.stringify({ partyId }),
     });
 
     const data = await res.json();
@@ -31,14 +30,6 @@ export default function VotePage() {
     <main className="p-8 max-w-xl mx-auto space-y-4">
       <h1 className="text-2xl font-bold">Vote for a Party</h1>
 
-      <input
-        type="text"
-        placeholder="Enter your user ID"
-        className="border p-2 w-full rounded"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-      />
-
       {parties.map((party) => (
         <button
           key={party.id}
@@ -48,6 +39,16 @@ export default function VotePage() {
           Vote for {party.name}
         </button>
       ))}
+
+<button
+  onClick={async () => {
+    await fetch("/api/auth/logout");
+    window.location.href = "/login"; // перенаправим
+  }}
+  className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
+>
+  Logout
+</button>
 
       {message && <p className="text-green-600">{message}</p>}
     </main>
