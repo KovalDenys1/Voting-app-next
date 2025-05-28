@@ -13,3 +13,15 @@ export async function sendVerificationEmail(email: string, token: string) {
            <p><a href="${confirmUrl}">${confirmUrl}</a></p>`,
   });
 }
+export async function sendResetPasswordEmail(email: string, token: string) {
+  const resetUrl = `${process.env.BASE_URL}/reset?token=${token}`;
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Reset your password",
+    html: `<p>You requested a password reset.</p>
+           <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
+           <p>This link is valid for 1 hour.</p>`,
+  });
+}
