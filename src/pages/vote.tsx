@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Layout from "@/components/Layout";
 
 type Party = {
   id: string;
@@ -11,8 +12,8 @@ export default function VotePage() {
 
   useEffect(() => {
     fetch("/api/parties")
-      .then(res => res.json())
-      .then(data => setParties(data.parties));
+      .then((res) => res.json())
+      .then((data) => setParties(data.parties));
   }, []);
 
   const handleVote = async (partyId: string) => {
@@ -27,30 +28,26 @@ export default function VotePage() {
   };
 
   return (
-    <main className="p-8 max-w-xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">Vote for a Party</h1>
+    <Layout>
+      <div className="max-w-xl mx-auto bg-white p-6 rounded shadow space-y-4">
+        <h1 className="text-2xl font-bold text-center">Vote for a Political Party</h1>
 
-      {parties.map((party) => (
-        <button
-          key={party.id}
-          onClick={() => handleVote(party.id)}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mt-2"
-        >
-          Vote for {party.name}
-        </button>
-      ))}
+        {parties.length === 0 && <p className="text-center">Loading parties...</p>}
 
-<button
-  onClick={async () => {
-    await fetch("/api/auth/logout");
-    window.location.href = "/login"; // перенаправим
-  }}
-  className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
->
-  Logout
-</button>
+        {parties.map((party) => (
+          <button
+            key={party.id}
+            onClick={() => handleVote(party.id)}
+            className="w-full text-left bg-blue-600 text-white font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
+          >
+            {party.name}
+          </button>
+        ))}
 
-      {message && <p className="text-green-600">{message}</p>}
-    </main>
+        {message && (
+          <div className="text-center text-green-600 font-medium mt-4">{message}</div>
+        )}
+      </div>
+    </Layout>
   );
 }
