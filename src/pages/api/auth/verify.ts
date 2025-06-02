@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = await prisma.user.findFirst({
     where: {
       verifyToken: token,
-      verifyTokenExp: { gte: new Date() }, // token не просрочен
+      verifyTokenExp: { gte: new Date() },
     },
   });
 

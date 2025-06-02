@@ -15,13 +15,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Email and password are required" });
   }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
+const existingUser = await prisma.user.findUnique({ where: { email } });
 
-  if (existingUser) {
-    return res.status(400).json({ message: "Email is already registered" });
+if (existingUser) {
+  if (existingUser.verified) {
+    return res.status(400).json({ message: "Email is already registered and verified." });
+  } else {
+    await sendVerificationEmail(existingUser.email, existingUser.id);
+    return res.status(200).json({
+      message: "Verification link has been resent to your email.",
+    });
   }
+}
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const token = crypto.randomBytes(32).toString("hex");

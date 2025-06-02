@@ -1,6 +1,12 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport(process.env.EMAIL_SERVER || "");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export async function sendVerificationEmail(email: string, token: string) {
   const confirmUrl = `${process.env.BASE_URL}/verify?token=${token}`;
@@ -13,6 +19,7 @@ export async function sendVerificationEmail(email: string, token: string) {
            <p><a href="${confirmUrl}">${confirmUrl}</a></p>`,
   });
 }
+
 export async function sendResetPasswordEmail(email: string, token: string) {
   const resetUrl = `${process.env.BASE_URL}/reset?token=${token}`;
 
@@ -21,7 +28,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
     to: email,
     subject: "Reset your password",
     html: `<p>You requested a password reset.</p>
-           <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
+           <p>Click <a href="${resetUrl}">${resetUrl}</a> to reset your password.</p>
            <p>This link is valid for 1 hour.</p>`,
   });
 }
