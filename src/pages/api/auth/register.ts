@@ -1,48 +1,44 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/utils/mail";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Allow only POST requests
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Only POST method is allowed" });
   }
 
   const { email, password } = req.body;
 
+  // Check if email and password are provided
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
-const existingUser = await prisma.user.findUnique({ where: { email } });
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({ where: { email } });
 
-if (existingUser) {
-  if (existingUser.verified) {
-    return res.status(400).json({ message: "Email is already registered and verified." });
-  } else {
-    await sendVerificationEmail(existingUser.email, existingUser.id);
-    return res.status(200).json({
-      message: "Verification link has been resent to your email.",
-    });
+  if (existingUser) {
+    if (existingUser.verified) {
+      // If user is already verified, return error
+      return res.status(400).json({ message: "Email is already registered and verified." });
+    } else {
+      // If user is not verified, resend verification email
+      await sendVerificationEmail(existingUser.email, existingUser.id);
+      return res.status(200).json({
+        message: "Verification link has been resent to your email.",
+      });
+    }
   }
-}
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Generate a verification token
   const token = crypto.randomBytes(32).toString("hex");
-  const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      verifyToken: token,
-      verifyTokenExp: tokenExpiry,
-    },
-  });
-
+  // Send verification email to the new user
   await sendVerificationEmail(email, token);
 
+  // Respond with success message
   return res.status(200).json({
     message: "Registration successful. Please check your email to verify your account.",
   });

@@ -1,5 +1,5 @@
 {
-  "name": "norwegian-voting-site",
+  "name": "voting-app-next",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -33,7 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9",
+    "eslint": "^9.28.0",
     "eslint-config-next": "15.3.2",
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.1",

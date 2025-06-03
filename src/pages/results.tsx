@@ -14,6 +14,7 @@ export default function ResultsPage() {
   useAuthRedirect();
   const router = useRouter();
 
+  // Redirect to login if token is missing
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -24,6 +25,7 @@ export default function ResultsPage() {
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch voting results from the API
   useEffect(() => {
     fetch("/api/results")
       .then((res) => res.json())
@@ -38,6 +40,7 @@ export default function ResultsPage() {
       <div className="max-w-xl mx-auto bg-white p-6 rounded shadow space-y-4">
         <h1 className="text-2xl font-bold text-center">Voting Results</h1>
 
+        {/* Show loading, empty, or results */}
         {loading ? (
           <p className="text-center">Loading results...</p>
         ) : results.length === 0 ? (

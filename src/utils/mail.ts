@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 
+// Create a transporter for sending emails using Gmail
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -8,6 +9,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Send a verification email with a confirmation link
 export async function sendVerificationEmail(email: string, token: string) {
   const confirmUrl = `${process.env.BASE_URL}/verify?token=${token}`;
 
@@ -20,6 +22,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   });
 }
 
+// Send a password reset email with a reset link
 export async function sendResetPasswordEmail(email: string, token: string) {
   const resetUrl = `${process.env.BASE_URL}/reset?token=${token}`;
 

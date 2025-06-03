@@ -13,15 +13,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { email, password } = req.body;
 
-const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email } });
 
-if (!user) {
-  return res.status(401).json({ message: "Invalid email or password" });
-}
+  if (!user) {
+    return res.status(401).json({ message: "Invalid email or password" });
+  }
 
-if (!user.verified) {
-  return res.status(403).json({ message: "Please verify your email first" });
-}
+  if (!user.verified) {
+    return res.status(403).json({ message: "Please verify your email first" });
+  }
 
   const isValid = await bcrypt.compare(password, user.password);
 
@@ -29,10 +29,10 @@ if (!user.verified) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
-  // 🔐 Создаём JWT
+  // Create JWT
   const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
-  // 🍪 Ставим httpOnly cookie
+  // Set httpOnly cookie
   res.setHeader(
     "Set-Cookie",
     serialize("token", token, {
@@ -40,7 +40,7 @@ if (!user.verified) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 дней
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     })
   );
 

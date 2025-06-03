@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  // Handle login form submission
   const handleLogin = async () => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
@@ -19,7 +21,8 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (res.ok) {
-      localStorage.setItem("token", data.token); // ← сохраняем токен
+      // Save token to localStorage and redirect to vote page
+      localStorage.setItem("token", data.token);
       router.push("/vote");
     } else {
       setError(data.message || "Login failed");
@@ -30,8 +33,10 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm space-y-4 p-6 bg-white border rounded shadow">
         <h1 className="text-xl font-bold text-center">Login</h1>
+        {/* Display error message if login fails */}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         
+        {/* Email input field */}
         <input
           type="email"
           placeholder="Email"
@@ -40,6 +45,7 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
+        {/* Password input field with show/hide toggle */}
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
@@ -57,6 +63,7 @@ export default function LoginPage() {
           </button>
         </div>
 
+        {/* Login button */}
         <button
           onClick={handleLogin}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
@@ -64,12 +71,14 @@ export default function LoginPage() {
           Login
         </button>
 
+        {/* Link to forgot password page */}
         <p className="text-sm text-center">
-          <a href="/forgot-password" className="text-blue-500 hover:underline">Forgot password?</a>
+          <Link href="/forgot-password" className="text-blue-500 hover:underline">Forgot password?</Link>
         </p>
+        {/* Link to register page */}
         <p className="text-sm text-center">
-          Don't have an account?{" "}
-          <a href="/register" className="text-blue-500 hover:underline">Register</a>
+          {"Don't have an account? "}
+          <Link href="/register" className="text-blue-500 hover:underline">Register</Link>
         </p>
       </div>
     </main>

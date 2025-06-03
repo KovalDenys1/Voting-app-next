@@ -12,12 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return res.status(404).json({ message: "No user with that email" });
 
-  // Generate token (valid for 15 minutes)
+  // Generate a JWT token valid for 15 minutes
   const token = jwt.sign({ email }, process.env.JWT_SECRET!, { expiresIn: "15m" });
 
-  // ✅ BASE_URL is used from env file
+  // Build the reset password URL using BASE_URL from environment variables
   const resetUrl = `${process.env.BASE_URL}/reset-password?token=${token}`;
 
+  // Configure the email transporter using Gmail
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -26,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  // Email options for sending the reset link
   const mailOptions = {
     from: `"Voting App" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -38,9 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   try {
+    // Send the reset password email
     await transporter.sendMail(mailOptions);
     return res.status(200).json({ message: "Reset link sent" });
   } catch (error) {
+    // Log and return error if email sending fails
     console.error("Email error:", error);
     return res.status(500).json({ message: "Failed to send email" });
   }

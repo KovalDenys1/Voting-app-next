@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { useRouter } from "next/router";
+import Link from "next/link";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  // Handle registration form submission
   const handleRegister = async () => {
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -36,9 +36,12 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm space-y-4 p-6 border rounded shadow">
         <h1 className="text-xl font-bold text-center">Register</h1>
 
+        {/* Display error message if registration fails */}
         {error && <p className="text-red-500 text-sm">{error}</p>}
+        {/* Display success message if registration succeeds */}
         {message && <p className="text-green-600 text-sm">{message}</p>}
 
+        {/* Email input field */}
         <input
           type="email"
           placeholder="Email"
@@ -47,6 +50,7 @@ export default function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
+        {/* Password input field */}
         <input
           type="password"
           placeholder="Password"
@@ -55,6 +59,7 @@ export default function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* Confirm password input field */}
         <input
           type="password"
           placeholder="Confirm Password"
@@ -63,6 +68,7 @@ export default function RegisterPage() {
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
 
+        {/* Register button */}
         <button
           onClick={handleRegister}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
@@ -70,9 +76,10 @@ export default function RegisterPage() {
           Register
         </button>
 
+        {/* Link to login page */}
         <p className="text-sm text-center">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-500 hover:underline">Login</a>
+          {"Already have an account? "}
+          <Link href="/login" className="text-blue-500 hover:underline">Login</Link>
         </p>
       </div>
     </main>
