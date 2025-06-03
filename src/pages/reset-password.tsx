@@ -1,32 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import jwt from "jsonwebtoken";
-import { GetServerSideProps } from "next";
 import { Eye, EyeOff } from "lucide-react";
 
-type Props = {
-  email: string;
-  token: string;
-};
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const token = context.query.token as string;
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { email: string };
-    return { props: { email: decoded.email, token } };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: "/forgot-password",
-        permanent: false,
-      },
-    };
-  }
-};
-
-export default function ResetPasswordPage({ email, token }: Props) {
+export default function ResetPasswordPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
@@ -34,51 +13,69 @@ export default function ResetPasswordPage({ email, token }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleReset = async () => {
+  useEffect(() => {
+    const { token } = router.query;
+    if (typeof token === "string") {
+      try {
+        const decoded = jwt.decode(token) as { email?: string };
+        if (decoded?.email) setEmail(decoded.email);
+      } catch {
+        setError("Invalid token");
+      }
+    }
+  }, [router.query]);
+
+  const handleSubmit = async () => {
     setError("");
     setSuccess("");
 
-    if (password !== confirm) {
-      setError("Passwords do not match");
+    const token = router.query.token;
+    if (!token || typeof token !== "string") {
+      setError("Missing token");
       return;
     }
 
     const res = await fetch("/api/auth/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, password }),
+      body: JSON.stringify({ token, password, confirmPassword: confirm }),
     });
 
     const data = await res.json();
     if (res.ok) {
       setSuccess(data.message);
-      setTimeout(() => router.push("/login"), 3000);
+      setPassword("");
+      setConfirm("");
     } else {
-      setError(data.message || "Something went wrong");
+      setError(data.message);
     }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white p-6 rounded shadow space-y-4">
+    <main className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white p-6 rounded shadow max-w-md w-full space-y-4">
         <h1 className="text-xl font-bold text-center">Reset Password</h1>
-        <p className="text-center text-sm text-gray-600">Account: <strong>{email}</strong></p>
+        {email && (
+          <p className="text-center text-sm text-gray-600">
+            Account: <span className="font-medium">{email}</span>
+          </p>
+        )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {success && <p className="text-green-600 text-sm">{success}</p>}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {success && <p className="text-green-600 text-sm text-center">{success}</p>}
 
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
             placeholder="New password"
-            className="w-full border p-2 rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full border p-2 rounded"
           />
           <button
             type="button"
             className="absolute right-2 top-2 text-gray-500"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowPassword((prev) => !prev)}
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -88,21 +85,21 @@ export default function ResetPasswordPage({ email, token }: Props) {
           <input
             type={showConfirm ? "text" : "password"}
             placeholder="Confirm password"
-            className="w-full border p-2 rounded"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
+            className="w-full border p-2 rounded"
           />
           <button
             type="button"
             className="absolute right-2 top-2 text-gray-500"
-            onClick={() => setShowConfirm(!showConfirm)}
+            onClick={() => setShowConfirm((prev) => !prev)}
           >
             {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
 
         <button
-          onClick={handleReset}
+          onClick={handleSubmit}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
           Change Password

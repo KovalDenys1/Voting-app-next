@@ -17,3 +17,16 @@ export function getUserIdFromRequest(req: NextApiRequest): string | null {
     return null;
   }
 }
+
+export function getUserFromToken(): { email: string } | null {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const decoded = jwt.decode(token) as { email: string };
+    return decoded;
+  } catch (err) {
+    return null;
+  }
+}

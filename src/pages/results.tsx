@@ -1,4 +1,6 @@
+import useAuthRedirect from "@/utils/useAuthRedirect";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 
 type Result = {
@@ -9,6 +11,16 @@ type Result = {
 };
 
 export default function ResultsPage() {
+  useAuthRedirect();
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
+
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(true);
 

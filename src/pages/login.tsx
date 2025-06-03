@@ -19,6 +19,7 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (res.ok) {
+      localStorage.setItem("token", data.token); // ← сохраняем токен
       router.push("/vote");
     } else {
       setError(data.message || "Login failed");

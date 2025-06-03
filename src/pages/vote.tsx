@@ -1,4 +1,6 @@
+import useAuthRedirect from "@/utils/useAuthRedirect";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 
 type Party = {
@@ -8,6 +10,16 @@ type Party = {
 };
 
 export default function VotePage() {
+  useAuthRedirect();
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
+
   const [parties, setParties] = useState<Party[]>([]);
   const [message, setMessage] = useState("");
   const [votedPartyId, setVotedPartyId] = useState<string | null>(null);
