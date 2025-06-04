@@ -4,8 +4,13 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "@/utils/mail";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Log the received HTTP method for debugging
+  console.log('Received method:', req.method);
+
   // Allow only POST requests
   if (req.method !== "POST") {
+    // Set the Allow header to inform which methods are allowed
+    res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ message: "Only POST method is allowed" });
   }
 
