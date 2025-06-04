@@ -10,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Allow only POST requests
   if (req.method !== "POST") {
     // Set the Allow header to inform which methods are allowed
-    res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ message: "Only POST method is allowed" });
   }
 
@@ -23,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
-
+  res.setHeader("Allow", ["POST"]);
   if (existingUser) {
     if (existingUser.verified) {
       // If user is already verified, return error
