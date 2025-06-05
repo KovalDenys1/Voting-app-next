@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Получаем все партии
+    // Get all parties
     const parties = await prisma.party.findMany();
 
-    // Получаем количество голосов по каждой партии
+    // Get the number of votes for each party
     const voteCounts = await prisma.vote.groupBy({
       by: ["partyId"],
       _count: {
@@ -14,20 +14,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // Создаём карту partyId => количество голосов
+    // Create a map: partyId => number of votes
     const countMap = new Map<string, number>(
       voteCounts.map(vc => [vc.partyId, vc._count.partyId])
     );
 
-    // Формируем массив результатов
+    // Build the results array
     const results = parties
       .map(party => ({
         party: { name: party.name },
         count: countMap.get(party.id) || 0,
       }))
-      .sort((a, b) => b.count - a.count); // сортировка по убыванию голосов
+      .sort((a, b) => b.count - a.count); // sort by votes descending
 
-    // Отправляем результат
+    // Send the result
     return res.status(200).json({ results });
 
   } catch (error: unknown) {
