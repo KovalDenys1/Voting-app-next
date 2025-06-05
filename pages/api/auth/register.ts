@@ -4,46 +4,57 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "@/utils/mail";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Log the received HTTP method for debugging
-  console.log('Received method:', req.method);
+  console.log("🟡 Received method:", req.method);
 
-  // Allow only POST requests
   if (req.method !== "POST") {
-    // Set the Allow header to inform which methods are allowed
+    console.warn("⚠️ Method not allowed:", req.method);
     return res.status(405).json({ message: "Only POST method is allowed" });
   }
 
   const { email, password } = req.body;
 
-  // Check if email and password are provided
+  console.log("📩 Email:", email);
+  console.log("🔐 Password length:", password?.length);
+
   if (!email || !password) {
+    console.warn("❌ Missing email or password");
     return res.status(400).json({ message: "Email and password are required" });
   }
 
-  // Check if user already exists
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  res.setHeader("Allow", ["POST"]);
-  if (existingUser) {
-    if (existingUser.verified) {
-      // If user is already verified, return error
-      return res.status(400).json({ message: "Email is already registered and verified." });
-    } else {
-      // If user is not verified, resend verification email
-      await sendVerificationEmail(existingUser.email, existingUser.id);
-      return res.status(200).json({
-        message: "Verification link has been resent to your email.",
-      });
+  try {
+    console.log("🔍 Checking if user exists...");
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      console.log("👤 User found:", existingUser.email, "| Verified:", existingUser.verified);
+
+      if (existingUser.verified) {
+        return res.status(400).json({ message: "Email is already registered and verified." });
+      } else {
+        console.log("📨 Resending verification email...");
+        await sendVerificationEmail(existingUser.email, existingUser.id);
+        return res.status(200).json({
+          message: "Verification link has been resent to your email.",
+        });
+      }
     }
+
+    console.log("🧪 Generating token...");
+    const token = crypto.randomBytes(32).toString("hex");
+
+    console.log("📨 Sending verification email to new user...");
+    await sendVerificationEmail(email, token);
+
+    console.log("✅ Registration complete");
+    return res.status(200).json({
+      message: "Registration successful. Please check your email to verify your account.",
+    });
+
+  } catch (error: any) {
+    console.error("💥 Registration error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error?.message || "Unknown error"
+    });
   }
-
-  // Generate a verification token
-  const token = crypto.randomBytes(32).toString("hex");
-
-  // Send verification email to the new user
-  await sendVerificationEmail(email, token);
-
-  // Respond with success message
-  return res.status(200).json({
-    message: "Registration successful. Please check your email to verify your account.",
-  });
 }

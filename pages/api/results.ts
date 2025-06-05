@@ -15,16 +15,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Create a map of partyId to vote count
   const countMap = new Map(
-    voteCounts.map((vc) => [vc.partyId, vc._count.partyId])
+    voteCounts.map((vc: { partyId: number; _count: { partyId: number } }) => [vc.partyId, vc._count.partyId])
   );
 
   // Build the results array with party name and vote count, sorted by count descending
   const results = parties
-    .map((party) => ({
+    .map((party: { id: number; name: string }) => ({
       party: { name: party.name },
       count: countMap.get(party.id) || 0,
     }))
-    .sort((a, b) => b.count - a.count); // Sort by descending vote count
+    .sort((a: { party: { name: string }; count: number }, b: { party: { name: string }; count: number }) => b.count - a.count); // Sort by descending vote count
 
   // Respond with the results
   res.status(200).json({ results });
