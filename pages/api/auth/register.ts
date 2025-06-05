@@ -50,11 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: "Registration successful. Please check your email to verify your account.",
     });
 
-  } catch (error: any) {
-    console.error("💥 Registration error:", error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("💥 Registration error:", err);
     return res.status(500).json({
       message: "Internal server error",
-      error: error?.message || "Unknown error"
+      error: err.message,
     });
   }
 }
