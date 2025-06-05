@@ -2,30 +2,40 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Fetch all parties from the database
-  const parties = await prisma.party.findMany();
+  try {
+    // Получаем все партии
+    const parties = await prisma.party.findMany();
 
-  // Group votes by partyId and count them
-  const voteCounts = await prisma.vote.groupBy({
-    by: ["partyId"],
-    _count: {
-      partyId: true,
-    },
-  });
+    // Получаем количество голосов по каждой партии
+    const voteCounts = await prisma.vote.groupBy({
+      by: ["partyId"],
+      _count: {
+        partyId: true,
+      },
+    });
 
-  // Create a map of partyId to vote count
-  const countMap = new Map(
-    voteCounts.map((vc: { partyId: number; _count: { partyId: number } }) => [vc.partyId, vc._count.partyId])
-  );
+    // Создаём карту partyId => количество голосов
+    const countMap = new Map<string, number>(
+      voteCounts.map(vc => [vc.partyId, vc._count.partyId])
+    );
 
-  // Build the results array with party name and vote count, sorted by count descending
-  const results = parties
-    .map((party: { id: number; name: string }) => ({
-      party: { name: party.name },
-      count: countMap.get(party.id) || 0,
-    }))
-    .sort((a: { party: { name: string }; count: number }, b: { party: { name: string }; count: number }) => b.count - a.count); // Sort by descending vote count
+    // Формируем массив результатов
+    const results = parties
+      .map(party => ({
+        party: { name: party.name },
+        count: countMap.get(party.id) || 0,
+      }))
+      .sort((a, b) => b.count - a.count); // сортировка по убыванию голосов
 
-  // Respond with the results
-  res.status(200).json({ results });
+    // Отправляем результат
+    return res.status(200).json({ results });
+
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("💥 Error in /api/results:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
 }
