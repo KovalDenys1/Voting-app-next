@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/utils/mail";
+import bcrypt from "bcrypt";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log("🟡 Received method:", req.method);
@@ -41,6 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log("🧪 Generating token...");
     const token = crypto.randomBytes(32).toString("hex");
+
+    // Хешируем пароль и создаём пользователя перед отправкой письма
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        verifyToken: token,
+        verifyTokenExp: new Date(Date.now() + 1000 * 60 * 60), // 1 час
+      }
+    });
 
     console.log("📨 Sending verification email to new user...");
     await sendVerificationEmail(email, token);
